@@ -1,6 +1,6 @@
 #################################################################################
 ##
-##   R package Rsolnp by Alexios Ghalanos and Stefan Theussl Copyright (C) 2009-2013
+##   R package Rsolnp by Alexios Galanos and Stefan Theussl Copyright (C) 2009-2013
 ##   This file is part of the R package Rsolnp.
 ##
 ##   The R package Rsolnp is free software: you can redistribute it and/or modify
@@ -96,7 +96,7 @@
 		warning(paste("\nsolnp-->warning: ", v , " detected in function call...check your function\n", sep = ""), immediate. = FALSE)
 		v = 1e24
 	}
-	v
+	as.numeric(v)
 }
 
 .checkgrad = function(pars, fun, .env, ...)

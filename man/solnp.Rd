@@ -96,7 +96,7 @@ non linear programming}, PhD Thesis, Department of EES Stanford University,
 Stanford CA.
 }
 \author{
-Alexios Ghalanos and Stefan Theussl\cr
+Alexios Galanos and Stefan Theussl\cr
 Y.Ye (original matlab version of solnp)
 }
 \note{

@@ -38,7 +38,7 @@ P. E. Gill, W. Murray, and M. A. Saunders, \emph{SNOPT An SQP algorithm for
 large-scale constrained optimization}, SIAM J. Optim., 12 (2002), pp.979-1006.
 }
 \author{
-Alexios Ghalanos and Stefan Theussl\cr
+Alexios Galanos and Stefan Theussl\cr
 Y.Ye (original matlab version of solnp)
 }
 \examples{

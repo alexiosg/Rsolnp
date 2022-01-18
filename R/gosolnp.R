@@ -1,6 +1,6 @@
 #################################################################################
 ##
-##   R package Rsolnp by Alexios Ghalanos and Stefan Theussl Copyright (C) 2009-2013
+##   R package Rsolnp by Alexios Galanos and Stefan Theussl Copyright (C) 2009-2013
 ##   This file is part of the R package Rsolnp.
 ##
 ##   The R package Rsolnp is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 
 #---------------------------------------------------------------------------------
 # optimization by randomly restarted parameters using simulated parameter strategy
-# Alexios Ghalanos 2010
+# Alexios Galanos 2010
 #---------------------------------------------------------------------------------
 
 # allowed distributions:

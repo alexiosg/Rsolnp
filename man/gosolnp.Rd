@@ -130,7 +130,7 @@ Hu, X. and Shonkwiler, R. and Spruill, M.C. \emph{Random Restarts in Global
 Optimization}, 1994, Georgia Institute of technology, Atlanta.
 }
 \author{
-Alexios Ghalanos and Stefan Theussl\cr
+Alexios Galanos and Stefan Theussl\cr
 Y.Ye (original matlab version of solnp)
 }
 \note{

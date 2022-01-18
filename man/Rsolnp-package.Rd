@@ -16,7 +16,7 @@ LazyLoad: \tab yes\cr
 Depends: \tab stats, truncnorm, parallel\cr}
 }
 \author{
-Alexios Ghalanos and Stefan Theussl
+Alexios Galanos and Stefan Theussl
 }
 \references{
 Y.Ye, \emph{Interior algorithms for linear, quadratic, and linearly constrained 

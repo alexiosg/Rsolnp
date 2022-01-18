@@ -103,7 +103,7 @@ A matrix of dimension bestN x (no.parameters + 1). The last column is the
 evaluated function value.
 }
 \author{
-Alexios Ghalanos and Stefan Theussl\cr
+Alexios Galanos and Stefan Theussl\cr
 }
 \note{
 The choice of which distribution to use for randomly sampling the parameter 

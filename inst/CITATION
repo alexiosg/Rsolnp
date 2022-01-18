@@ -9,11 +9,11 @@ note <- sprintf("R package version %s.", meta$Version)
 citEntry(entry="Manual",
          title = "Rsolnp: General Non-linear Optimization Using Augmented
     Lagrange Multiplier Method",
-         author = personList(as.person("Alexios Ghalanos and Stefan Theussl")),
+         author = personList(as.person("Alexios Galanos and Stefan Theussl")),
          year         = year,
          note         = note,
          textVersion = 
-         paste("Alexios Ghalanos and Stefan Theussl",
+         paste("Alexios Galanos and Stefan Theussl",
                sprintf("(%s).", year),
                "Rsolnp: General Non-linear Optimization Using Augmented Lagrange Multiplier Method.",
 	       note),
