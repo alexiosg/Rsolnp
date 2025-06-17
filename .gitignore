@@ -2,3 +2,7 @@ Rsolnp.Rproj
 .Rhistory
 .Rbuildignore
 .Rproj.user
+inst/doc
+.DS_Store
+*.o
+*.so
