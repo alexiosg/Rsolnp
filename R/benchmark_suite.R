@@ -113,8 +113,8 @@ solnp_problem_suite <- function(suite = "Hock-Schittkowski", number = 1, return_
 solnp_problems_table <- function()
 {
     hs_problems <- c("hs01","hs02","hs03","hs04","hs05","hs06","hs07",
-                     "hs08","hs09", paste0("hs",10:50),"hs110","hs118","hs119")
-    hs_number <- c(1:50,110,118,119)
+                     "hs08","hs09", paste0("hs",10:55),"hs110","hs118","hs119")
+    hs_number <- c(1:55,110,118,119)
     other_problems <- sort(c("alkylation","wright4","wright9","box","entropy","rosen_suzuki","powell",
                              "himmelblau5"))
     other_number <- c(1:length(other_problems))

@@ -49,11 +49,29 @@
 #' by \eqn{h_l} and \eqn{h_u}, with parameter bounds \eqn{x_l} and \eqn{x_u}. Internally,
 #' inequality constraints are converted into equality constraints using slack variables
 #' and solved using an augmented Lagrangian approach.
-#'
 #' This function is based on the original R code, but converted to C++, making use of
 #' \code{Rcpp} and \code{RcppArmadillo}.
 #' Additionally, it allows the user to pass in analytic gradient and Jacobians, else
 #' finite differences using \code{\link{numDeriv-package}[numDeriv]} are used.
+#'
+#' The control list consists of the following options:
+#' \describe{
+#'   \item{rho}{Numeric. Initial penalty parameter for the augmented Lagrangian. Controls the weight given to constraint violation in the objective. Default is \code{1}.}
+#'   \item{max_iter}{Integer. Maximum number of major (outer) iterations allowed. Default is \code{400}.}
+#'   \item{min_iter}{Integer. Maximum number of minor (inner) iterations (per major iteration) for the quadratic subproblem solver. Default is \code{800}.}
+#'   \item{tol}{Numeric. Convergence tolerance for both feasibility (constraint violation) and optimality (change in objective). The algorithm terminates when changes fall below this threshold. Default is \code{1e-8}.}
+#'   \item{trace}{Integer If \code{1}, prints progress, \code{2} includes diagnostic information during optimization. Default is \code{0}.}
+#' }
+#'
+#' Tracing information provides the following:
+#' \describe{
+#'   \item{Iter}{The current major iteration number.}
+#'   \item{Obj}{The value of the objective function \eqn{f(x)} at the current iterate.}
+#'   \item{||Constr||}{The norm of the current constraint violation, summarizing how well all constraints (equality and inequality) are satisfied. Typically the Euclidean or infinity norm.}
+#'   \item{RelObj}{The relative change in the objective function value compared to the previous iteration, i.e., \eqn{|f_k - f_{k-1}| / max(1, |f_{k-1}|)}.}
+#'   \item{Step}{The norm of the parameter update taken in this iteration, i.e., \eqn{||x_k - x_{k-1}||}.}
+#'   \item{Penalty}{The current value of the penalty parameter (\eqn{\rho}) in the augmented Lagrangian. This parameter is adaptively updated to balance objective minimization and constraint satisfaction.}
+#' }
 #' @rdname csolnp
 #' @author Alexios Galanos
 #' @export
