@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^doc$
+^Meta$
+README.Rmd
+README.md
+^logo\.png$
