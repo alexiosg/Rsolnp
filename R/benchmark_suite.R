@@ -98,7 +98,7 @@ solnp_problem_suite <- function(suite = "Hock-Schittkowski", number = 1, return_
 #' - For Hock-Schittkowski problems, numbers range from 1 to 50, with a few
 #'   selected extras (e.g., 110, 118, 119).
 #' - The \dQuote{Other} suite includes named problems like \sQuote{box},
-#'   \sQuote{alkylation}, \sQuote{entropy}, etc.,
+#'   \sQuote{alkylation}, \sQuote{entropy}, \sQuote{garch}, etc.,
 #' and are numbered sequentially.
 #'
 #' @examples
@@ -113,10 +113,10 @@ solnp_problem_suite <- function(suite = "Hock-Schittkowski", number = 1, return_
 solnp_problems_table <- function()
 {
     hs_problems <- c("hs01","hs02","hs03","hs04","hs05","hs06","hs07",
-                     "hs08","hs09", paste0("hs",10:55),"hs110","hs118","hs119")
-    hs_number <- c(1:55,110,118,119)
+                     "hs08","hs09", paste0("hs",10:56),"hs110","hs118","hs119")
+    hs_number <- c(1:56,110,118,119)
     other_problems <- sort(c("alkylation","wright4","wright9","box","entropy","rosen_suzuki","powell",
-                             "himmelblau5"))
+                             "himmelblau5","garch"))
     other_number <- c(1:length(other_problems))
     rbind(data.frame("Suite" = "Hock-Schittkowski", "Problem" = hs_problems, "Number" = hs_number),
           data.frame("Suite" = "Other", "Problem" = other_problems, "Number" = other_number))

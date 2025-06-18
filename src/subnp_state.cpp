@@ -130,14 +130,16 @@ Rcpp::List csubnp_cpp(subnp_state& s)
         x = working_params.subvec(n_ineq, n_pic-1) % scaling_factors.subvec(n_constraints+1, n_constraints+n_pars);
         if (setup[6] > 0) {
             Aeq = Rcpp::as<mat>(s.solnp_eqjac(x));
-            Aeq.each_col() %= 1.0 / scaling_factors.subvec(1, n_eq);
-            Aeq.each_row() %= scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars).t();
+            arma::vec r = 1.0 / scaling_factors.subvec(1, n_eq); // [n_eq]
+            arma::vec c = scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars); // [n_pars]
+            Aeq = Aeq % (r * c.t());
             augmented_jacobian.submat(0, n_ineq, n_eq-1, n_pic-1) = Aeq;
         }
         if (setup[3] > 0) {
             Aineq = Rcpp::as<mat>(s.solnp_ineqjac(x));
-            Aineq.each_col() %= 1.0 / scaling_factors.subvec(n_eq + 1, n_constraints);
-            Aineq.each_row() %= scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars).t();
+            arma::vec r = 1.0 / scaling_factors.subvec(n_eq + 1, n_constraints);              // length: n_ineq
+            arma::vec c = scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars);  // length: n_pars
+            Aineq = Aineq % (r * c.t());
             augmented_jacobian.submat(n_eq, n_ineq, n_constraints-1, n_pic-1) = Aineq;
             augmented_jacobian.submat(n_eq, 0, n_constraints-1, n_ineq-1) = -arma::eye(n_ineq, n_ineq);
         }
@@ -156,7 +158,7 @@ Rcpp::List csubnp_cpp(subnp_state& s)
         if (line_search_steps(0) <= 0) {
             status_flag = 1;
             if (setup[10] == 0) {
-                working_params -= augmented_jacobian.t() * arma::solve(augmented_jacobian * augmented_jacobian.t(), constraint, arma::solve_opts::allow_ugly);
+                working_params -= augmented_jacobian.t() * arma::solve(augmented_jacobian * augmented_jacobian.t(), constraint, arma::solve_opts::fast + arma::solve_opts::no_approx);
                 line_search_steps(1) = 1;
             }
         }
@@ -173,7 +175,6 @@ Rcpp::List csubnp_cpp(subnp_state& s)
             dx = arma::ones<arma::vec>(n_pic + 1);
             step_interval_width = 1.0;
             minit = 0;
-
             while(step_interval_width >= tol) {
                 minit += 1;
                 arma::mat gap = arma::join_rows(working_params.subvec(0, mm-1) - param_bounds.col(0), param_bounds.col(1) - working_params.subvec(0, mm-1));
@@ -273,13 +274,15 @@ Rcpp::List csubnp_cpp(subnp_state& s)
             scaled_grad_x = scaled_grad_f / scaling_factors(0);
             if (n_eq > 0) {
                 Aeq = Rcpp::as<mat>(s.solnp_eqjac(x));
-                Aeq.each_col() %= 1.0 / scaling_factors.subvec(1, n_eq);
-                Aeq.each_row() %= scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars).t();
+                arma::vec r = 1.0 / scaling_factors.subvec(1, n_eq); // [n_eq]
+                arma::vec c = scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars); // [n_pars]
+                Aeq = Aeq % (r * c.t());
             }
             if (n_ineq > 0) {
                 Aineq = Rcpp::as<mat>(s.solnp_ineqjac(x));
-                Aineq.each_col() %= 1.0 / scaling_factors.subvec(n_eq + 1, n_constraints);
-                Aineq.each_row() %= scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars).t();
+                arma::vec r = 1.0 / scaling_factors.subvec(n_eq + 1, n_constraints);              // length: n_ineq
+                arma::vec c = scaling_factors.subvec(n_constraints + 1, n_constraints + n_pars);  // length: n_pars
+                Aineq = Aineq % (r * c.t());
             }
             if (n_constraints > 0) {
                 Alin_x = augmented_jacobian.cols(n_ineq, n_ineq + n_pars - 1);
@@ -341,16 +344,18 @@ Rcpp::List csubnp_cpp(subnp_state& s)
             // Update first mm elements of dx
             dx.subvec(0, mm-1) = arma::ones<arma::vec>(mm) / gap_vec;
 
-            if (setup[10] == 0) {
+            if (setup[9] == 0) {
                 double min_dx = dx.subvec(0, mm-1).min();
                 double val = std::min(min_dx, 0.01); // matching R's min(c(dx[1:mm, 1], 0.01))
                 dx.subvec(mm, n_pic-1) = val * arma::ones<arma::vec>(n_pic - mm);
             }
         }
-
         step_interval_width = -1;
         lambda /= 10.0;
-
+        // ToDo: add these as control options
+        int step_count = 0.0;
+        const double step_eps = 1e-12;
+        double previous_step_interval_width = step_interval_width;
         while (step_interval_width <= 0) {
             arma::mat diag_dx2 = arma::diagmat(arma::square(dx));
             arma::mat hess_reg = augmented_hessian + lambda * diag_dx2;
@@ -364,12 +369,13 @@ Rcpp::List csubnp_cpp(subnp_state& s)
             cz_temp = result.first;
             bool inv_success = false;
             try {
-                cz = arma::inv(cz_temp);
+                cz = arma::inv(cz_temp, arma::inv_opts::allow_approx);
                 inv_success = true;
             } catch (std::runtime_error& e) {
                 cz_temp.reset();
                 inv_success = false;
             }
+
             if (!inv_success) {
                 return solnp_error_return(p, y, augmented_hessian, lambda, scaling_factors, n_eq, n_constraints, n_pars, n_constraints > 0, "Cholesky Matrix inversion failed", nfeval, 1);
             }
@@ -397,8 +403,16 @@ Rcpp::List csubnp_cpp(subnp_state& s)
                 step_interval_width = std::min(diff1.min(), diff2.min());
                 lambda *= 3;
             }
-
+            if (std::abs(step_interval_width - previous_step_interval_width) < step_eps) {
+                step_count += 1;
+            } else {
+                previous_step_interval_width = step_interval_width;
+            }
+            if (step_count > 25) {
+                return solnp_error_return(p, y, augmented_hessian, lambda, scaling_factors, n_eq, n_constraints, n_pars, n_constraints > 0, "Infeasible Line Search", nfeval, 1);
+            }
         }
+
         line_search_steps(0) = 0;
         scaled_value_1 = scaled_value;
         scaled_value_2 = scaled_value_1;
@@ -495,7 +509,7 @@ Rcpp::List csubnp_cpp(subnp_state& s)
         }
         reduce = (j - min_step_obj) / (1.0 + std::abs(j));
         if (reduce < tol) {
-            maxit = minit;
+            maxit = minit; // break early
         }
         condition_1 = step_objectives(0) < step_objectives(1);
         condition_2 = step_objectives(2) < step_objectives(1) && step_objectives(0) >= step_objectives(1);

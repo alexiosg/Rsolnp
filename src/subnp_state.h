@@ -17,6 +17,7 @@ struct subnp_state {
     arma::vec scaling_factors;
     double penalty_param;
     double tol;
+    double ftol;
     double min_iter;
     int trace;
     int nfeval;

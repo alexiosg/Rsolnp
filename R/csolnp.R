@@ -257,6 +257,7 @@ csolnp <- function(pars, fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL
   opt_state$penalty_param <- penalty_param
   opt_state$min_iter <- max_minor_iterations
   opt_state$tol <- tol
+  opt_state$ftol <- 1e-8
   opt_state$trace <- trace
   opt_state$n_eq <- n_eq
   opt_state$n_ineq <- n_ineq
@@ -314,7 +315,7 @@ csolnp <- function(pars, fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL
     pars = optimized_parameters,
     convergence = result$convergence,
     message = convergence_message,
-    objective = tail(historical_objective_values, 1),
+    objective = result$best_objective,
     objective_history = as.numeric(historical_objective_values),
     lagrange = lagrange_mults,
     hessian = augmented_hessian,

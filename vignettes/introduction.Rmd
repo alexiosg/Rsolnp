@@ -160,8 +160,9 @@ args(solnp)
 ```
 
 
-
-Speedup of anywhere up to 10x can be expected for some problems.
+Speedup of anywhere up to 10x can be expected for some problems. Additionally,
+certain enhancements have been made in the C++ code in regards to criteria for
+early termination to avoid stalling in the line search phase.
 
 
 ## Test Suite
@@ -204,6 +205,38 @@ print(c("convergence" = sol$convergence))
 print(c("csolnp objective" = sol$objective, "best objective" = prob$best_fn))
 print(sol$elapsed_time)
 ```
+
+We also test a more specific problem based on the GARCH(1,1) model with analytic
+derivatives:
+
+```{r}
+prob <- solnp_problem_suite(suite = "Other", number = 4)
+sol <- csolnp(pars = prob$start, fn = prob$fn, gr = prob$gr, eq = prob$eq_fn, eq_b = prob$eq_b, 
+              eq_jac = prob$eq_jac, ineq_fn = prob$ineq_fn, ineq_lower = prob$ineq_lower, 
+              ineq_upper = prob$ineq_upper, ineq_jac = prob$ineq_jac, lower = prob$lower,
+              upper = prob$upper)
+print(prob$name)
+print(c("convergence" = sol$convergence))
+print(c("csolnp objective" = sol$objective, "best objective" = prob$best_fn))
+print(sol$elapsed_time)
+```
+
+## Differences with full Active-Set/SQP solvers
+
+Below is a short summary of the key differences between the SOLNP algorithm
+and full Active-set/SQP methods:
+
+| Aspect                | SOLNP                                    | Active-Set SQP / QP                  |
+|-----------------------|------------------------------------------|--------------------------------------|
+| Inequality handling   | Slacks, penalty, all treated equally     | Active set, complementarity enforced |
+| Subproblem            | Least squares (QR, no QP)                | Quadratic programming                |
+| KKT stationarity      | Not always enforced                      | Enforced at every step               |
+| Complementarity       | Not enforced                             | Enforced at every step               |
+| Scaling sensitivity   | Can be significant                       | Generally better                     |
+| Globalization         | Penalty parameter tuning crucial         | Line search/trust region, more robust|
+| Numerical behavior    | Simple, robust for easy problems         | More complex, better for hard ones   |
+
+
 
 ## Conclusion
 

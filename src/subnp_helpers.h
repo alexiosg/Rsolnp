@@ -58,15 +58,15 @@ inline std::pair<arma::vec, bool> qr_solve_weighted_system(const arma::mat& augm
 
     arma::vec y;
     bool success = false;
-
     try {
         arma::mat Q, R;
         arma::qr(Q, R, At);
         arma::vec Qt_rhs = Q.t() * rhs;
-        y = arma::solve(R, Qt_rhs, arma::solve_opts::allow_ugly);
+        y = arma::solve(R, Qt_rhs, arma::solve_opts::fast + arma::solve_opts::no_approx);
         success = true;
     } catch (const std::runtime_error&) {
         y.reset();
+        y.zeros();
         success = false;
     }
     return std::make_pair(y, success);
@@ -85,10 +85,11 @@ inline std::pair<arma::vec, bool>
             arma::mat Q, R;
             arma::qr(Q, R, At);
             arma::vec Qt_yg = Q.t() * delta_gradient;
-            y = arma::solve(R, Qt_yg, arma::solve_opts::allow_ugly);
+            y = arma::solve(R, Qt_yg, arma::solve_opts::fast + arma::solve_opts::no_approx);
             success = true;
         } catch (const std::runtime_error&) {
             y.reset();
+            y.zeros();
             success = false;
         }
         return std::make_pair(y, success);
@@ -105,10 +106,11 @@ inline std::pair<arma::vec, bool> solve_weighted_system(const arma::mat& augment
     arma::vec y;
     bool success = false;
     try {
-        y = arma::solve(At, rhs, arma::solve_opts::allow_ugly);
+        y = arma::solve(At, rhs, arma::solve_opts::fast + arma::solve_opts::no_approx);
         success = true;
     } catch (const std::runtime_error&) {
         y.reset();
+        y.zeros();
         success = false;
     }
     return std::make_pair(y, success);
@@ -123,6 +125,7 @@ inline std::pair<arma::mat, bool> cholesky(const arma::mat& A) {
         chol_success = true;
     } catch (const std::runtime_error&) {
         cz.reset();
+        cz.zeros();
         chol_success = false;
     }
     return std::make_pair(cz, chol_success);
@@ -187,6 +190,31 @@ inline Rcpp::List compute_kkt_diagnostics(
         Rcpp::_["dual_feas_violation"] = dual_violation,
         Rcpp::_["compl_slackness"] = comp_slack
     );
+}
+
+
+inline double compute_stationarity(
+        const arma::vec& parameters,
+        const arma::vec& lagrange_mults,
+        int n_eq,
+        int n_ineq,
+        const Rcpp::Function& gradient_fun,
+        const Rcpp::Function& eq_j,
+        const Rcpp::Function& ineq_j
+) {
+    arma::vec grad = Rcpp::as<arma::vec>(gradient_fun(parameters));
+    arma::vec lagr_mult_eq, lagr_mult_ineq;
+    if (n_eq > 0) lagr_mult_eq = lagrange_mults.subvec(0, n_eq - 1);
+    if (n_ineq > 0) lagr_mult_ineq = lagrange_mults.subvec(n_eq, n_eq + n_ineq - 1);
+    arma::mat A_eq, A_ineq;
+    if (n_eq > 0)   A_eq   = Rcpp::as<arma::mat>(eq_j(parameters));
+    if (n_ineq > 0) A_ineq = Rcpp::as<arma::mat>(ineq_j(parameters));
+    arma::vec lagr_grad = grad;
+    if (n_eq > 0)   lagr_grad -= A_eq.t() * lagr_mult_eq;
+    if (n_ineq > 0) lagr_grad -= A_ineq.t() * lagr_mult_ineq;
+
+    double kkt_stationarity = arma::norm(lagr_grad, "inf");
+    return kkt_stationarity;
 }
 
 #endif // SUBNP_HELPERS_H

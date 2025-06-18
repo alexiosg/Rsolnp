@@ -14,6 +14,7 @@ subnp_state::subnp_state(Rcpp::List& state)
       lambda(Rcpp::as<double>(state["lambda"])),
       penalty_param(state["penalty_param"]),
       tol(state["tol"]),
+      ftol(state["ftol"]),
       min_iter(state["min_iter"]),
       trace(state["trace"]),
       solnp_fun(state["solnp_fun"]),
@@ -47,10 +48,11 @@ subnp_state::subnp_state(Rcpp::List& state)
 
 // [[Rcpp::export(.csolnp)]]
 Rcpp::List csolnp(Rcpp::List state) {
-    int major_iteration_count = Rcpp::as<int>(state["major_iteration_count"]);
+    int major_iteration_count = 0;
     int max_major_iterations = Rcpp::as<int>(state["max_major_iterations"]);
     double penalty_param = Rcpp::as<double>(state["penalty_param"]);
     double tol = Rcpp::as<double>(state["tol"]);
+    //double ftol = Rcpp::as<double>(state["ftol"]);
     int n_eq = Rcpp::as<int>(state["n_eq"]);
     int n_ineq = Rcpp::as<int>(state["n_ineq"]);
     int num_parameters = Rcpp::as<int>(state["num_parameters"]);
@@ -92,8 +94,17 @@ Rcpp::List csolnp(Rcpp::List state) {
     int n_fun_eval = 0;
     int error_code = 0;
     int convergence = 0;
+    double gtol = 1e-6;
+    const double min_penalty = std::sqrt(tol);
+    double grad_norm = 0.0;
     arma::vec previous_parameters = augmented_parameters.subvec(n_ineq, n_ineq + num_parameters - 1);
+    double best_feas_obj = std::numeric_limits<double>::infinity();
+    //arma::vec best_feas_params;
+    //double best_feas_constr = std::numeric_limits<double>::infinity();
     double step_norm = 0.0;
+    double current_objective_value = std::numeric_limits<double>::infinity();
+    arma::vec tmp_obj = arma::zeros(1);
+    arma::vec best_lagrange_mults;
     while (major_iteration_count < max_major_iterations) {
         // Build/update control list per iteration
         subnp.penalty_param = penalty_param;
@@ -144,18 +155,29 @@ Rcpp::List csolnp(Rcpp::List state) {
         lagrange_mults = Rcpp::as<arma::vec>(subnp_results["y"]);
         augmented_hessian = Rcpp::as<arma::mat>(subnp_results["augmented_hessian"]);
         lambda = Rcpp::as<double>(subnp_results["lambda"]);
+
         // 7. Extract current parameters from augmented vector
         arma::vec current_parameters = augmented_parameters.subvec(n_ineq, n_ineq + num_parameters - 1);
         step_norm = arma::norm(current_parameters - previous_parameters, 2);
         previous_parameters = current_parameters;
 
         // 8. Evaluate objective
-        double current_objective_value = Rcpp::as<double>(objective_fun(current_parameters));
+        current_objective_value = Rcpp::as<double>(objective_fun(current_parameters));
         n_fun_eval += 1;
         if (trace > 0) {
             print_progress(major_iteration_count, current_objective_value, status_vector(2),
                            status_vector(0), step_norm, penalty_param);
         }
+        // this requires to also add grad_norm to be robust
+        // if (status_vector(2) < ftol) {
+        //   if (current_objective_value < best_feas_obj) {
+        //     Rcpp::Rcout<<"current_objective_value"<<current_objective_value<<std::endl;
+        //     best_feas_obj = current_objective_value;
+        //     best_feas_params = augmented_parameters;
+        //     best_feas_constr = status_vector(2);
+        //     best_lagrange_mults = lagrange_mults;
+        //   }
+        // }
 
         // 10. Evaluate constraints
         arma::vec combined(1);
@@ -190,19 +212,36 @@ Rcpp::List csolnp(Rcpp::List state) {
             }
             // Norm of constraint violations
             status_vector(2) = vnorm(current_constraint_violations);
-
+            grad_norm = compute_stationarity(current_parameters, lagrange_mults, n_eq, n_ineq, gradient_fun, eq_j, ineq_j);
             // Penalty parameter logic
-            if (status_vector(2) < 10 * tol) {
-                penalty_param = 0;
-                lambda = std::min(lambda, tol);
-            }
-            if (status_vector(2) < 5 * status_vector(1)) {
-                penalty_param /= 5.0;
-            }
-            if (status_vector(2) > 10 * status_vector(1)) {
-                penalty_param = 5.0 * std::max(penalty_param, std::sqrt(tol));
+            // if (status_vector(2) < 10 * tol) {
+            //     penalty_param = 0;
+            //     lambda = std::min(lambda, tol);
+            // }
+            // if (status_vector(2) < 5 * status_vector(1)) {
+            //     penalty_param /= 5.0;
+            // }
+            // if (status_vector(2) > 10 * status_vector(1)) {
+            //     penalty_param = 5.0 * std::max(penalty_param, std::sqrt(tol));
+            // }
+            if (status_vector(2) < tol && grad_norm < gtol) {
+              penalty_param = 0;
+              lambda = std::min(lambda, tol);
+            } else {
+              if (status_vector(2) < 5 * status_vector(1)) {
+                penalty_param = std::max(penalty_param / 5.0, min_penalty);
+              }
+              if (status_vector(2) > 10 * status_vector(1)) {
+                penalty_param = 5.0 * std::max(penalty_param, min_penalty);
+              }
             }
 
+            if (penalty_param == 0 && status_vector(2) > tol) {
+              penalty_param = std::max(1.0, min_penalty);
+              if (trace > 0) {
+                Rcpp::Rcout << "Penalty restored to " << penalty_param << " due to loss of feasibility." << std::endl;
+              }
+            }
             // Reset multipliers/Hessian if needed
             if (std::max(tol + status_vector(0), status_vector(1) - status_vector(2)) <= 0) {
                 lagrange_mults.zeros();
@@ -223,12 +262,21 @@ Rcpp::List csolnp(Rcpp::List state) {
         }
 
         // 14. Track objective
-        arma::vec tmp_obj(1);
         tmp_obj(0) = current_objective_value;
         historical_objective_values = arma::join_vert(historical_objective_values, tmp_obj);
     }
-    arma::vec optimal_parameters = augmented_parameters.subvec(n_ineq, n_ineq + num_parameters - 1);
+    best_feas_obj = current_objective_value;
 
+    // if (best_feas_obj < std::numeric_limits<double>::infinity() && std::abs(current_objective_value - best_feas_obj) > 1e-10) {
+    //   augmented_parameters = best_feas_params;
+    //   lagrange_mults = best_lagrange_mults;
+    //   status_vector(2) = best_feas_constr;
+    //   Rcpp::warning("Final iterate is infeasible. Returning best feasible solution found.");
+    // } else {
+    //   best_feas_obj = current_objective_value;
+    // }
+
+    arma::vec optimal_parameters = augmented_parameters.subvec(n_ineq, n_ineq + num_parameters - 1);
     Rcpp::List kkt_diagnostics = compute_kkt_diagnostics(optimal_parameters, lagrange_mults, n_eq, n_ineq,
                                                          gradient_fun, eq_j, ineq_j, eq_f, ineq_f, tol);
 
@@ -244,6 +292,7 @@ Rcpp::List csolnp(Rcpp::List state) {
         Rcpp::_["error_code"] = error_code,
         Rcpp::_["convergence"] = convergence,
         Rcpp::_["historical_objective_values"] = historical_objective_values,
+        Rcpp::_["best_objective"] = best_feas_obj,
         Rcpp::_["kkt_diagnostics"] = kkt_diagnostics
     );
 }

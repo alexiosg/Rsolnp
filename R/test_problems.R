@@ -2475,6 +2475,7 @@ hs54_problem <- function()
 
 hs55_problem <- function()
 {
+    # solver killer problem
     fn <- function(x) {
         x14 <- x[1] * x[4]
         if (x14 > 10) x14 <- 10
@@ -2518,6 +2519,65 @@ hs55_problem <- function()
     best_par <- c(0, 4/3, 5/3, 1, 2/3, 1/3)
     list(
         name = "hs55",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
+hs56_problem <- function()
+{
+    fn <- function(x) {
+        -x[1] * x[2] * x[3]
+    }
+    gr <- function(x) {
+        c(-x[2] * x[3], -x[1] * x[3], -x[1] * x[2], 0, 0, 0, 0)
+    }
+    eq_fn <- function(x) {
+        c(x[1] - 4.2 * sin(x[4])^2, x[2] - 4.2 * sin(x[5])^2,
+          x[3] - 4.2 * sin(x[6])^2, x[1] + 2 * x[2] + 2 * x[3] - 7.2 * sin(x[7])^2)
+    }
+    eq_jac <- function(x) {
+        matrix(c(1, 0, 0, -8.4 * sin(x[4]) * cos(x[4]), 0, 0, 0,
+                 0, 1, 0, 0, -8.4 * sin(x[5]) * cos(x[5]), 0, 0,
+                 0, 0, 1, 0, 0, -8.4 * sin(x[6]) * cos(x[6]), 0,
+                 1, 2, 2, 0, 0, 0, -14.4 * sin(x[7]) * cos(x[7])), nrow = 4, byrow = TRUE)
+    }
+    lower <- rep(-1000, 7)
+    upper <- rep(1000, 7)
+    start <- c(
+        1, 1, 1,
+        asin(sqrt(1 / 4.2)),
+        asin(sqrt(1 / 4.2)),
+        asin(sqrt(1 / 4.2)),
+        asin(sqrt(5 / 7.2))
+    )
+    eq_b <- rep(0, 4)
+    ineq_fn <- NULL
+    ineq_jac <- NULL
+    ineq_lower <- NULL
+    ineq_upper <- NULL
+    best_fn <- -3.456
+    best_par <- c(
+        2.4, 1.2, 1.2,
+        asin(sqrt(4 / 7)),
+        asin(sqrt(2 / 7)),
+        asin(sqrt(2 / 7)),
+        2 * atan(1)
+    )
+    list(
+        name = "hs56",
         fn = fn,
         gr = gr,
         eq_fn = eq_fn,
@@ -3452,4 +3512,125 @@ hs110_problem <- function()
     )
 }
 
+garch_problem <- function()
+{
+    n <- 1500
+    set.seed(100)
+    z <- rnorm(n)
+    x <- numeric(n)
+    sigma2 <- numeric(n)
+    x[1] <- 0.1315172
+    sigma2[1] <- 0.2211
+    mu <- -0.006184353
+    omega <- 0.010760430
+    alpha <- 0.153408326
+    beta <- 0.805877422
+    for (t in 2:n) {
+        sigma2[t] <- omega + alpha * (x[t - 1] - mu)^2 + beta * sigma2[t - 1]
+        x[t] <- mu + z[t] * sqrt(sigma2[t])
+    }
+
+    returns <- x
+    garch11_negloglik <- function(par) {
+        # Parameterization: par = c(mu, omega, alpha, beta)
+        mu    <- par[1]
+        omega <- par[2]
+        alpha <- par[3]
+        beta  <- par[4]
+
+        T <- length(returns)
+        eps <- returns - mu
+        sig2 <- numeric(T)
+
+        # Initialize sigma^2 with unconditional variance
+        sig2[1] <- mean(eps^2)
+
+        for (t in 2:T) {
+            sig2[t] <- omega + alpha * eps[t - 1]^2 + beta * sig2[t - 1]
+        }
+
+        nll <- 0.5 * sum(log(2*pi) + log(sig2) + eps^2 / sig2)
+        return(nll)
+    }
+
+    garch11_grad <- function(par) {
+        mu    <- par[1]
+        omega <- par[2]
+        alpha <- par[3]
+        beta  <- par[4]
+        T <- length(returns)
+        eps <- returns - mu
+        sig2 <- numeric(T)
+        dsig2_domega <- numeric(T)
+        dsig2_dalpha <- numeric(T)
+        dsig2_dbeta  <- numeric(T)
+        dsig2_dmu    <- numeric(T)
+
+        # Initialize with sample variance of residuals
+        sig2[1] <- mean(eps^2)
+        dsig2_domega[1] <- 0
+        dsig2_dalpha[1] <- 0
+        dsig2_dbeta[1]  <- 0
+        dsig2_dmu[1]    <- -2 * mean(eps)
+
+        # Recursion
+        for (t in 2:T) {
+            dsig2_domega[t] <- 1 + beta * dsig2_domega[t - 1]
+            dsig2_dalpha[t] <- eps[t - 1]^2 + beta * dsig2_dalpha[t - 1]
+            dsig2_dbeta[t]  <- sig2[t - 1] + beta * dsig2_dbeta[t - 1]
+            dsig2_dmu[t]    <- -2 * alpha * eps[t - 1] + beta * dsig2_dmu[t - 1]
+            sig2[t] <- omega + alpha * eps[t - 1]^2 + beta * sig2[t - 1]
+        }
+
+        # Gradients
+        dmu <- -sum(eps / sig2) + sum(0.5 * (1 / sig2 - (eps^2) / (sig2^2)) * dsig2_dmu)
+        domega <- sum((1 / (2 * sig2) - eps^2 / (2 * sig2^2)) * dsig2_domega)
+        dalpha <- sum((1 / (2 * sig2) - eps^2 / (2 * sig2^2)) * dsig2_dalpha)
+        dbeta  <- sum((1 / (2 * sig2) - eps^2 / (2 * sig2^2)) * dsig2_dbeta)
+
+        return(c(dmu, domega, dalpha, dbeta))
+    }
+    garch11_ineq_fn <- function(par) {
+        # par = (mu, omega, alpha, beta)
+        alpha <- par[3]
+        beta  <- par[4]
+        return(alpha + beta - 1)
+    }
+
+    garch11_ineq_jac <- function(par) {
+        # Jacobian: returns a 1x4 row vector
+        jac <- numeric(4)
+        jac[3] <- 1  # derivative wrt alpha
+        jac[4] <- 1  # derivative wrt beta
+        return(matrix(jac, nrow = 1))
+    }
+
+    lower <- c(-1, 1e-12, 1e-12, 1e-12)
+    upper <- c(1, 2, 1, 1)
+    start <- c(mu = 0, omega = 0.1, alpha = 0.05, beta = 0.9)
+    eq_fn <- NULL
+    eq_jac <- NULL
+    ineq_fn <- garch11_ineq_fn
+    ineq_jac <- garch11_ineq_jac
+    eq_b <- NULL
+    ineq_lower <- -1
+    ineq_upper <- 0
+    list(
+        name = "garch",
+        fn = garch11_negloglik,
+        gr = garch11_grad,
+        eq_fn = NULL,
+        eq_b = NULL,
+        eq_jac = NULL,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = 1074.36,
+        best_par = c(-0.006184353, 0.010760430, 0.153408326, 0.805877422)
+    )
+}
 
