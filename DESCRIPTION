@@ -7,7 +7,7 @@ Authors@R: c(person("Alexios", "Galanos", role = c("aut", "cre","cph"), email = 
 Maintainer: Alexios Galanos <alexios@4dscape.com>
 Depends: R (>= 3.0.2)
 LinkingTo: Rcpp (>= 0.10.6), RcppArmadillo
-Imports: Rcpp, truncnorm, parallel, stats, numDeriv
+Imports: Rcpp, truncnorm, parallel, stats, numDeriv, future.apply
 Description: General Non-linear Optimization Using Augmented Lagrange Multiplier Method.
 LazyLoad: yes
 License: GPL-2

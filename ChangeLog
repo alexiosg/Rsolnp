@@ -5,7 +5,10 @@
     constraints. Numerical central difference functions are instead
     constructed in the absence of any of these rather than using the
     simple forward difference in the original code.
-    * Added a new test suite including tests from the Hock-Schittkowski problems
+    * Added a new test suite including tests from the Hock-Schittkowski 306 problem set
+    and a GARCH problem to the existing test suite.
+    * Added a problem standardization function to convert the SOLNP benchmark problems
+    to standard form in order to compare with other solvers.
     * Converted package to use Roxygen
     * Added a vignette
 

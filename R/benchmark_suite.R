@@ -26,7 +26,7 @@
 #' # Retrieve multiple HS problems
 #' probs <- solnp_problem_suite(number = c(1, 2, 3))
 #'
-#' # Retrieve all implemented problems in "Other" suite
+#' # Retrieve problem in "Other" suite
 #' other_prob <- solnp_problem_suite(suite = "Other", number = 1)
 #' }
 #'
@@ -120,4 +120,122 @@ solnp_problems_table <- function()
     other_number <- c(1:length(other_problems))
     rbind(data.frame("Suite" = "Hock-Schittkowski", "Problem" = hs_problems, "Number" = hs_number),
           data.frame("Suite" = "Other", "Problem" = other_problems, "Number" = other_number))
+}
+
+#' Standardize an Optimization Problem to NLP Standard Form
+#'
+#' Converts a problem specified with two-sided inequalities and nonzero equality right-hand sides
+#' to the standard nonlinear programming (NLP) form.
+#'
+#'
+#' @param prob A list specifying the problem in SOLNP-compatible format, with components
+#'   \code{fn}, \code{eq_fn}, \code{eq_jac}, \code{eq_b}, \code{ineq_fn}, \code{ineq_jac},
+#'   \code{ineq_lower}, \code{ineq_upper}, and others.
+#'
+#' @return A list with the same structure as the input, but with \code{eq_fn} and \code{ineq_fn}
+#' standardized to the forms \eqn{e(x) = 0} and \eqn{g(x) \leq 0}, and with
+#' \code{eq_b}, \code{ineq_lower}, and \code{ineq_upper} removed.
+#'
+#' @details
+#' The standard form given by the following set of equations:
+#'
+#' \deqn{ \min_x\ f(x) }
+#' \deqn{ \textrm{subject to}\quad e(x) = 0 }
+#' \deqn{ \qquad\qquad\qquad g(x) \leq 0 }
+#'
+#' Specifically:
+#' \itemize{
+#'   \item All equality constraints are standardized to \eqn{e(x) = e(x) - b = 0}
+#'   \item Each two-sided inequality \eqn{l \leq g(x) \leq u} is converted to one or two
+#'   one-sided constraints: \eqn{l - g(x) \leq 0}, \eqn{g(x) - u \leq 0}
+#' }
+#'
+#' The returned problem object has all equalities as \eqn{e(x) = 0}, all inequalities as \eqn{g(x) \leq 0},
+#' and any right-hand side or bounds are absorbed into the standardized constraint functions.
+#'
+#' @examples
+#' # Alkylation problem
+#' p <- solnp_problem_suite(suite = "Other", number = 1)
+#' ps <- solnp_standardize_problem(p)
+#' ps$eq_fn(ps$start)    # standardized equalities: e(x) = 0
+#' ps$ineq_fn(ps$start)  # standardized inequalities: g(x) <= 0
+#'
+#' @seealso \code{\link{solnp_problem_suite}}
+#'
+#' @export
+solnp_standardize_problem <- function(prob) {
+    # Objective and gradient
+    fn <- prob$fn
+    gr <- prob$gr
+
+    # Equalities
+    eq_fn <- prob$eq_fn
+    eq_jac <- prob$eq_jac
+    eq_b <- if (!is.null(prob$eq_b)) prob$eq_b else NULL
+
+    # Standardize equalities: e(x) = eq_fn(x) - eq_b = 0
+    new_eq_fn <- if (is.null(eq_fn)) {
+        NULL
+    } else if (is.null(eq_b) || all(eq_b == 0)) {
+        eq_fn
+    } else {
+        function(x) eq_fn(x) - eq_b
+    }
+
+    new_eq_jac <- eq_jac  # No transformation needed if analytic jacobian is for eq_fn
+
+    # Inequalities
+    ineq_fn <- prob$ineq_fn
+    ineq_jac <- prob$ineq_jac
+    ineq_lower <- prob$ineq_lower
+    ineq_upper <- prob$ineq_upper
+
+    # Standardize inequalities to g(x) <= 0 form
+    new_ineq_fn <- if (is.null(ineq_fn)) {
+        NULL
+    } else {
+        function(x) {
+            gx <- ineq_fn(x)
+            g <- c()
+            if (!is.null(ineq_lower)) {
+                g <- c(g, ineq_lower - gx)
+            }
+            if (!is.null(ineq_upper)) {
+                g <- c(g, gx - ineq_upper)
+            }
+            if (length(g) == 0) NULL else g
+        }
+    }
+
+    # Standardize inequality jacobian if supplied
+    new_ineq_jac <- if (is.null(ineq_jac)) {
+        NULL
+    } else {
+        function(x) {
+            J <- ineq_jac(x)
+            Jlist <- list()
+            if (!is.null(ineq_lower)) {
+                for (i in seq_along(ineq_lower)) {
+                    Jlist[[length(Jlist) + 1]] <- -J[i, , drop = FALSE]
+                }
+            }
+            if (!is.null(ineq_upper)) {
+                for (i in seq_along(ineq_upper)) {
+                    Jlist[[length(Jlist) + 1]] <- J[i, , drop = FALSE]
+                }
+            }
+            if (length(Jlist) == 0) NULL else do.call(rbind, Jlist)
+        }
+    }
+
+    # Return standardized problem
+    prob_std <- prob
+    prob_std$eq_fn <- new_eq_fn
+    prob_std$eq_jac <- new_eq_jac
+    prob_std$ineq_fn <- new_ineq_fn
+    prob_std$ineq_jac <- new_ineq_jac
+    prob_std$eq_b <- NULL      # standardized out
+    prob_std$ineq_lower <- NULL
+    prob_std$ineq_upper <- NULL
+    prob_std
 }

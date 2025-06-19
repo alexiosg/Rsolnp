@@ -27,7 +27,7 @@ of other classic optimization problems.
 \item For Hock-Schittkowski problems, numbers range from 1 to 50, with a few
 selected extras (e.g., 110, 118, 119).
 \item The \dQuote{Other} suite includes named problems like \sQuote{box},
-\sQuote{alkylation}, \sQuote{entropy}, etc.,
+\sQuote{alkylation}, \sQuote{entropy}, \sQuote{garch}, etc.,
 and are numbered sequentially.
 }
 }

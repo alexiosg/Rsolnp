@@ -310,6 +310,7 @@ csolnp <- function(pars, fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL
   if (trace > 1) {
       print(convergence_message)
   }
+
   # Prepare results list
   results <- list(
     pars = optimized_parameters,

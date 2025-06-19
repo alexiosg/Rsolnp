@@ -6,6 +6,8 @@
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom Rcpp evalCpp
 #' @importFrom utils tail
+#' @importFrom stats optim
+#' @importFrom future.apply future_lapply
 "_PACKAGE"
 
 # The following block is used by usethis to automatically manage

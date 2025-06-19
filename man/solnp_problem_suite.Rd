@@ -43,7 +43,7 @@ prob <- solnp_problem_suite(number = 1)
 # Retrieve multiple HS problems
 probs <- solnp_problem_suite(number = c(1, 2, 3))
 
-# Retrieve all implemented problems in "Other" suite
+# Retrieve problem in "Other" suite
 other_prob <- solnp_problem_suite(suite = "Other", number = 1)
 }
 
