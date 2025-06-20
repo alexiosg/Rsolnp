@@ -95,7 +95,7 @@ and solved using an augmented Lagrangian approach.
 This function is based on the original R code, but converted to C++, making use of
 \code{Rcpp} and \code{RcppArmadillo}.
 Additionally, it allows the user to pass in analytic gradient and Jacobians, else
-finite differences using \code{\link{numDeriv-package}[numDeriv]} are used.
+finite differences using functions from the \code{numDeriv} package are used.
 
 The control list consists of the following options:
 \describe{

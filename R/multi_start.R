@@ -113,7 +113,7 @@ csolnp_ms <- function(fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL,
         if (inherits(out, 'try-error')) return(NULL)
         return(out)
     }, future.seed = TRUE, future.packages = "Rsolnp")
-
+    sol <- eval(sol)
     if (return_all) {
         return(sol)
     } else {
