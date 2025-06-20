@@ -23,7 +23,7 @@ of other classic optimization problems.
 \details{
 \itemize{
 \item All problem functions are expected to follow the naming convention
-\sQuote{\if{html}{\out{<Problem>}}_problem} (e.g., \sQuote{hs01_problem}).
+\sQuote{Problem_problem} (e.g., \sQuote{hs01_problem}).
 \item For Hock-Schittkowski problems, numbers range from 1 to 50, with a few
 selected extras (e.g., 110, 118, 119).
 \item The \dQuote{Other} suite includes named problems like \sQuote{box},
@@ -33,10 +33,10 @@ and are numbered sequentially.
 }
 \examples{
 # View all known problems
-solnp_problems_table()
+tail(solnp_problems_table())
 
 # Filter only HS problems
-subset(solnp_problems_table(), Suite == "Hock-Schittkowski")
+head(subset(solnp_problems_table(), Suite == "Hock-Schittkowski"))
 
 }
 \seealso{

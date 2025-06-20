@@ -24,7 +24,7 @@ Otherwise, an unnamed list of evaluated problem objects is returned.
 }
 \description{
 Returns a list (or a single object) of implemented test problems corresponding to a selected suite.
-Problem functions must follow the naming convention \sQuote{<problem_name>_problem} and return a list
+Problem functions must follow the naming convention \sQuote{problem_name_problem} and return a list
 describing the optimization problem (e.g., objective, constraints, bounds).
 }
 \details{

@@ -1,7 +1,7 @@
 #' Retrieve Implemented Test Problems for the SOLNP Suite
 #'
 #' Returns a list (or a single object) of implemented test problems corresponding to a selected suite.
-#' Problem functions must follow the naming convention \sQuote{<problem_name>_problem} and return a list
+#' Problem functions must follow the naming convention \sQuote{problem_name_problem} and return a list
 #' describing the optimization problem (e.g., objective, constraints, bounds).
 #'
 #' @param suite Character. The test suite to draw from. Must be one of \dQuote{Hock-Schittkowski} or \dQuote{Other}.
@@ -94,7 +94,7 @@ solnp_problem_suite <- function(suite = "Hock-Schittkowski", number = 1, return_
 #'
 #' @details
 #' - All problem functions are expected to follow the naming convention
-#'   \sQuote{<Problem>_problem} (e.g., \sQuote{hs01_problem}).
+#'   \sQuote{Problem_problem} (e.g., \sQuote{hs01_problem}).
 #' - For Hock-Schittkowski problems, numbers range from 1 to 50, with a few
 #'   selected extras (e.g., 110, 118, 119).
 #' - The \dQuote{Other} suite includes named problems like \sQuote{box},
@@ -103,10 +103,10 @@ solnp_problem_suite <- function(suite = "Hock-Schittkowski", number = 1, return_
 #'
 #' @examples
 #' # View all known problems
-#' solnp_problems_table()
+#' tail(solnp_problems_table())
 #'
 #' # Filter only HS problems
-#' subset(solnp_problems_table(), Suite == "Hock-Schittkowski")
+#' head(subset(solnp_problems_table(), Suite == "Hock-Schittkowski"))
 #'
 #' @seealso [solnp_problem_suite()]
 #' @export
