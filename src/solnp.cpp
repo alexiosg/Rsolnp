@@ -1,7 +1,7 @@
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "subnp_state.h"
 #include "subnp_helpers.h"
-// [[Rcpp::depends(RcppArmadillo)]]
 
 subnp_state::subnp_state(Rcpp::List& state)
     : pars(state["augmented_parameters"]),

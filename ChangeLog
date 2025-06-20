@@ -1,5 +1,5 @@
 2025-06-18  Alexios Galanos <alexios@4dscape.com>
-  * DESCRIPTION (Version): New version is 1.2.0
+  * DESCRIPTION (Version): New version is 2.0.0
     * Added a C++ version of the solver which also optionally
     takes functions for the analytic gradient and jacobians of
     constraints. Numerical central difference functions are instead

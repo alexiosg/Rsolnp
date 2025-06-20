@@ -1,11 +1,16 @@
 ---
-title: "Introduction to SOLNP ver 1.2.0"
+title: "Introduction to SOLNP ver 2.0.0"
 output: 
     rmarkdown::html_vignette:
         css: custom.css
-        code_folding: show
+        code_folding: hide
+        citation_package: natbib
+        toc: yes
+bibliography: references.bib
+bibliography-style: apalike
+natbiboptions: round
 vignette: >
-  %\VignetteIndexEntry{Introduction to SOLNP ver 1.2.0}
+  %\VignetteIndexEntry{Introduction to SOLNP ver 2.0.0}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,7 +28,7 @@ library(Rsolnp)
 
 ## Introduction
 
-The SOLNP algorithm, first proposed by Ye (1988), is a Sequential Quadratic 
+The SOLNP algorithm, first proposed by @Ye1989, is a Sequential Quadratic 
 Programming (SQP) approach designed to solve general nonlinear optimization 
 problems with both equality and inequality constraints. In 2010, it was 
 implemented in R as the Rsolnp package, originally to fill the need for a robust 
@@ -157,7 +162,7 @@ and reliable results are achieved with tolerances in the 1e-6 to 1e-8 range.
 
 The original solnp function did not make use of analytic gradients or Jacobians,
 and was written entirely in R, a direct translation from the Matlab code. Since 
-version 1.2.0, a new function `csolnp`, written in C++^[Using [Rcpp](https://cran.r-project.org/package=Rcpp) 
+version 2.0.0, a new function `csolnp`, written in C++^[Using [Rcpp](https://cran.r-project.org/package=Rcpp) 
 and [RcppArmadillo](https://cran.r-project.org/package=RcppArmadillo)] allows the user 
 to provide analytic gradient and/or Jacobians for the inequality and equality constraints. 
 In the absence of analytic functions, finite differences are used using the functions from the [numDeriv](https://cran.r-project.org/package=numDeriv) package.
@@ -196,7 +201,7 @@ tightly constrained feasible regions.
 
 ## Test Suite
 
-As of version 1.2.0, a new test suite based on @Hock1980 and @Schittkowski2012
+As of version 2.0.0, a new test suite based on @Hock1980 and @Schittkowski2012
 has been included, translated from the Fortran codes 
 [here](https://klaus-schittkowski.de/tpnp.htm). Currently, about 60 problems
 of the 306 have been translated, and it is the intention of the author to 
@@ -270,7 +275,7 @@ sol <- csolnp_ms(prob$fn, gr = prob$gr, eq_fn = prob$eq_fn, eq_b = prob$eq_b,
               ineq_upper = prob$ineq_upper, ineq_jac = prob$ineq_jac, lower = prob$lower,
               upper = prob$upper, n_candidates = 200, penalty = 1e5, 
               control = list(min_iter = 1000, max_iter = 100, tol = 1e-8),
-              seed = 200)
+              seed = 300)
 
 print(paste0("Solution : ", round(sol$objective,3), " | Best Objective :", round(prob$best_fn,3)))
 print(paste0("Equaility Violation : ", round(sol$kkt_diagnostics$eq_violation,3)))
@@ -303,4 +308,7 @@ The C++ rewrite of solnp, inclusion of analytic derivative options and the new
 test suite should hopefully elevate the quality of the Rsolnp package. Future
 enhancements will include expansion of the test suite and a deeper investigation
 into some of the underlying approaches used and ways to enhance them.
+
+
+## References
 

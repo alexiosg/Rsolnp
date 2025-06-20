@@ -1,7 +1,7 @@
 Package: Rsolnp
 Type: Package
 Title: General Non-Linear Optimization
-Version: 1.2.0
+Version: 2.0.0
 Date: 2025-06-01
 Authors@R: c(person("Alexios", "Galanos", role = c("aut", "cre","cph"), email = "alexios@4dscape.com", comment = c(ORCID = "0009-0000-9308-0457")), person("Stefan", "Theussl", role = c("ctb"), email = "Stefan.Theussl@R-project.org", comment = c(ORCID = "0000-0002-6523-4620")), person("Yinyu", "Ye", role = "aut", comment = "Original author of the solnp Matlab code, Stanford University"))
 Maintainer: Alexios Galanos <alexios@4dscape.com>
