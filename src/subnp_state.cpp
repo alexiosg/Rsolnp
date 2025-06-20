@@ -184,7 +184,7 @@ Rcpp::List csubnp_cpp(subnp_state& s)
                 dx.subvec(0, mm - 1) = gap.col(0);
                 dx(n_pic)  = working_params(n_pic);
                 if (setup[9] == 0) {
-                    dx.subvec(mm, n_pic = 1) = std::max(dx.subvec(0, mm-1).max(), 100.0) * arma::ones<arma::vec>(n_pic - mm);
+                    dx.subvec(mm, n_pic - 1) = std::max(dx.subvec(0, mm-1).max(), 100.0) * arma::ones<arma::vec>(n_pic - mm);
                 }
                 auto result =  qr_solve_weighted_system(augmented_jacobian, dx, cx);
                 success = result.second;

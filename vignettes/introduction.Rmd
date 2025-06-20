@@ -138,7 +138,8 @@ where:
 ### No Stationarity-Based KKT Step
 
 Unlike SQP or interior-point methods, SOLNP does not solve the full KKT system 
-at each iteration, instead using: 
+at each iteration, instead using:
+
   - a quadratic local model
   - a trust-region style step
   - penalty-based adjustment (via $\rho$)
@@ -307,7 +308,7 @@ and full Active-set/SQP methods:
 The C++ rewrite of solnp, inclusion of analytic derivative options and the new
 test suite should hopefully elevate the quality of the Rsolnp package. Future
 enhancements will include expansion of the test suite and a deeper investigation
-into some of the underlying approaches used and ways to enhance them.
+into some of the underlying approaches used and ways to enhance the solver.
 
 
 ## References
