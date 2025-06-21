@@ -123,9 +123,11 @@ csolnp_ms <- function(fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL,
 
         # Convergence filter as before
         convergence <- sapply(sol, function(x) if (is.null(x)) 10 else as.numeric(x$convergence))
-        sol <- sol[which(convergence < 2)]
-        if (length(sol) == 0) warning("No solution achieved convergence < 2. Results may be unreliable.")
-
+        if (!any(convergence < 2)) {
+            warning("No solution achieved convergence < 2. Results may be unreliable.")
+        } else {
+            sol <- sol[which(convergence < 2)]
+        }
         # Get constraint violations
         has_eq <- !is.null(eq_fn)
         has_ineq <- !is.null(ineq_fn)

@@ -1,3 +1,7 @@
+2025-06-30  Alexios Galanos <alexios@4dscape.com>
+  * DESCRIPTION (Version): New version is 2.0.1
+  * Some fixes to csolnp_ms for cases when no convergence in any runs.
+
 2025-06-18  Alexios Galanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 2.0.0
     * Added a C++ version of the solver which also optionally
