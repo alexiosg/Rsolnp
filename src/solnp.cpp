@@ -278,7 +278,7 @@ Rcpp::List csolnp(Rcpp::List state) {
 
     arma::vec optimal_parameters = augmented_parameters.subvec(n_ineq, n_ineq + num_parameters - 1);
     Rcpp::List kkt_diagnostics = compute_kkt_diagnostics(optimal_parameters, lagrange_mults, n_eq, n_ineq,
-                                                         gradient_fun, eq_j, ineq_j, eq_f, ineq_f, tol);
+                                                         gradient_fun, eq_j, ineq_j, eq_f, ineq_f, ineq_lower, ineq_upper, tol);
 
     // --- Return results ---
     return Rcpp::List::create(

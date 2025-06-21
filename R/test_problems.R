@@ -2595,6 +2595,76 @@ hs56_problem <- function()
     )
 }
 
+hs57_problem <- function()
+{
+    A <- rep(0, 44); B <- rep(0, 44)
+
+    # Step 2: Fortran style assignments (copy the block structure)
+    A[1:2] <- 8; A[16+1:2] <- 18; A[30+1:2] <- 28; A[35+1:2] <- 32; A[38+1:2] <- 36; A[40+1:2] <- 38
+    B[1:2] <- 0.49; B[6+1:2] <- 0.46; B[11+1:2] <- 0.43; B[14+1:2] <- 0.43; B[18+1:2] <- 0.42
+    B[21+1:2] <- 0.41; B[25+1:2] <- 0.40; B[29+1:2] <- 0.41; B[36+1:2] <- 0.40; B[40+1:2] <- 0.40
+    B[42+1:2] <- 0.39
+    for (i in 1:3) {
+        A[10+i] <- 14;  A[13+i] <- 16;  A[18+i] <- 20
+        A[21+i] <- 22;  A[24+i] <- 24;  A[27+i] <- 26;  A[32+i] <- 30
+        B[31+i] <- 0.40
+    }
+    for (i in 1:4) {
+        A[2+i] <- 10; A[6+i] <- 12
+    }
+    A[38] <- 34; A[43] <- 40; A[44] <- 42
+    B[3] <- 0.48; B[4] <- 0.47; B[5] <- 0.48; B[6] <- 0.47; B[9] <- 0.45
+    B[10] <- 0.43; B[11] <- 0.45; B[14] <- 0.44; B[17] <- 0.46; B[18] <- 0.45
+    B[21] <- 0.43; B[24] <- 0.40; B[25] <- 0.42; B[28] <- 0.41; B[29] <- 0.40
+    B[35] <- 0.38; B[36] <- 0.41; B[39] <- 0.41; B[40] <- 0.38
+    fn <- function(x) {
+        F <- B - x[1] - (0.49 - x[1]) * exp(-x[2] * (A - 8))
+        sum(F^2)
+    }
+    gr <- function(x) {
+        F <- B - x[1] - (0.49 - x[1]) * exp(-x[2] * (A - 8))
+        V1 <- exp(-x[2] * (A - 8))
+        DF1 <- -1 + V1
+        DF2 <- (A - 8) * (0.49 - x[1]) * V1
+        g1 <- 2 * sum(F * DF1)
+        g2 <- 2 * sum(F * DF2)
+        c(g1, g2)
+    }
+    ineq_fn <- function(x) {
+        -x[1] * x[2] + 0.49 * x[2] - 0.09
+    }
+    ineq_jac <- function(x) {
+        matrix(c(-x[2], -x[1] + 0.49), nrow = 1)
+    }
+    lower <- c(0.4, -4)
+    upper <- c(1000, 1000)
+    start <- c(0.42, 5)
+    ineq_lower <- 0
+    ineq_upper <- 1e8
+    eq_fn <- NULL
+    eq_jac <- NULL
+    eq_b <- NULL
+    best_fn <- 0.0284596697213
+    best_par <- c(0.419952674511, 1.28484562930)
+    list(
+        name = "hs57",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
 alkylation_problem <- function() {
     fn <- function(x) {
         -0.63 * x[4] * x[7] + 50.4 * x[1] + 3.5 * x[2] + x[3] + 33.6 * x[5]

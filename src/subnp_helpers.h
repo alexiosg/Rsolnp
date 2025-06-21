@@ -142,46 +142,46 @@ inline Rcpp::List compute_kkt_diagnostics(
         const Rcpp::Function& ineq_j,
         const Rcpp::Function& eq_f,
         const Rcpp::Function& ineq_f,
+        const arma::vec& ineq_lower,
+        const arma::vec& ineq_upper,
         double tol
 ) {
-    // 1. Gradient of objective
     arma::vec grad = Rcpp::as<arma::vec>(gradient_fun(parameters));
 
-    // 2. Lagrange multipliers split
     arma::vec lagr_mult_eq, lagr_mult_ineq;
     if (n_eq > 0) lagr_mult_eq = lagrange_mults.subvec(0, n_eq - 1);
     if (n_ineq > 0) lagr_mult_ineq = lagrange_mults.subvec(n_eq, n_eq + n_ineq - 1);
 
-    // 3. Jacobians
     arma::mat A_eq, A_ineq;
     if (n_eq > 0)   A_eq   = Rcpp::as<arma::mat>(eq_j(parameters));
     if (n_ineq > 0) A_ineq = Rcpp::as<arma::mat>(ineq_j(parameters));
 
-    // 4. Lagrangian gradient
     arma::vec lagr_grad = grad;
     if (n_eq > 0)   lagr_grad -= A_eq.t() * lagr_mult_eq;
     if (n_ineq > 0) lagr_grad -= A_ineq.t() * lagr_mult_ineq;
 
     double kkt_stationarity = arma::norm(lagr_grad, "inf");
 
-    // 5. Constraint violations
     double eq_violation = 0.0, ineq_violation = 0.0;
-    if (n_eq > 0)   eq_violation   = arma::norm(Rcpp::as<arma::vec>(eq_f(parameters)), "inf");
+    arma::vec all_viol;
     if (n_ineq > 0) {
         arma::vec ineq_vals = Rcpp::as<arma::vec>(ineq_f(parameters));
-        ineq_violation = arma::norm(arma::min(ineq_vals, 0.0), "inf");
+        arma::vec lower_viol = arma::clamp(ineq_lower - ineq_vals, 0.0, arma::datum::inf);
+        arma::vec upper_viol = arma::clamp(ineq_vals - ineq_upper, 0.0, arma::datum::inf);
+        all_viol = arma::max(lower_viol, upper_viol);
+        ineq_violation = all_viol.max(); // or arma::norm(all_viol, "inf")
     }
-    // 6. Dual feasibility: lagr_mult_ineq >= -tol
+
+    if (n_eq > 0)
+        eq_violation = arma::norm(Rcpp::as<arma::vec>(eq_f(parameters)), "inf");
+
     double dual_violation = 0.0;
-    if (n_ineq > 0) {
+    if (n_ineq > 0)
         dual_violation = arma::norm(arma::min(lagr_mult_ineq, 0.0), "inf");
-    }
-    // 7. Complementarity: lagr_mult_ineq .* ineq_vals == 0
+
     double comp_slack = 0.0;
-    if (n_ineq > 0) {
-        arma::vec ineq_vals = Rcpp::as<arma::vec>(ineq_f(parameters));
-        comp_slack = arma::norm(lagr_mult_ineq % ineq_vals, "inf");
-    }
+    if (n_ineq > 0 && all_viol.n_elem == lagr_mult_ineq.n_elem)
+        comp_slack = arma::norm(lagr_mult_ineq % all_viol, "inf");
 
     return Rcpp::List::create(
         Rcpp::_["kkt_stationarity"] = kkt_stationarity,
