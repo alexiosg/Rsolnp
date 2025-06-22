@@ -354,22 +354,30 @@ csolnp <- function(pars, fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL
 #' @export
 kkt_diagnose <- function(kkt, tol = 1e-8) {
   stopifnot(is.list(kkt))
+  required_names <- c(
+    "kkt_stationarity",
+    "eq_violation",
+    "ineq_violation",
+    "dual_feas_violation",
+    "compl_slackness"
+  )
+  missing <- setdiff(required_names, names(kkt))
+  if (length(missing) > 0)
+    stop("KKT diagnostic list is missing required element(s): ", paste(missing, collapse = ", "))
+
+  nulls <- vapply(kkt[required_names], is.null, logical(1))
+  if (any(nulls))
+    stop("KKT diagnostic contains NULL for: ", paste(required_names[nulls], collapse = ", "))
+
+  vals <- as.numeric(unlist(kkt[required_names]))
+  na_idx <- which(is.na(vals))
+  if (length(na_idx) > 0)
+    stop("KKT diagnostic contains NA for: ", paste(required_names[na_idx], collapse = ", "))
+
   res <- data.frame(
     condition = c("stationarity", "equality_violation", "inequality_violation", "dual_feasibility", "complementarity"),
-    value = c(
-      kkt$kkt_stationarity,
-      kkt$eq_violation,
-      kkt$ineq_violation,
-      kkt$dual_feas_violation,
-      kkt$compl_slackness
-    ),
-    status = c(
-      ifelse(abs(kkt$kkt_stationarity) <= tol, "OK", "FAIL"),
-      ifelse(abs(kkt$eq_violation) <= tol, "OK", "FAIL"),
-      ifelse(abs(kkt$ineq_violation) <= tol, "OK", "FAIL"),
-      ifelse(abs(kkt$dual_feas_violation) <= tol, "OK", "FAIL"),
-      ifelse(abs(kkt$compl_slackness) <= tol, "OK", "FAIL")
-    ),
+    value = as.numeric(unlist(kkt[required_names])),
+    status = ifelse(abs(as.numeric(unlist(kkt[required_names]))) <= tol, "OK", "FAIL"),
     stringsAsFactors = FALSE
   )
   attr(res, "tolerance") <- tol
