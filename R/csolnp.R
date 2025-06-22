@@ -329,3 +329,61 @@ csolnp <- function(pars, fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL
   return(results)
 }
 
+
+#' Summarize KKT Condition Diagnostics
+#'
+#' Given a list of KKT diagnostic statistics (stationarity, feasibility, complementarity, etc.),
+#' this function prints a clear summary indicating which KKT conditions are satisfied at a specified tolerance.
+#'
+#' @param kkt A named list containing numeric entries for KKT diagnostics.
+#'        Required names are \code{"kkt_stationarity"}, \code{"eq_violation"},
+#'        \code{"ineq_violation"}, \code{"dual_feas_violation"}, \code{"compl_slackness"}.
+#' @param tol Numeric tolerance for considering a condition as "satisfied". Default is \code{1e-8}.
+#'
+#' @return An object of class "solnp_kkt_summary" (a data.frame with columns: condition, value, status, tol).
+#' @examples
+#' kkt <- list(
+#'   kkt_stationarity = 5.828909e-06,
+#'   eq_violation = 0,
+#'   ineq_violation = 0,
+#'   dual_feas_violation = 0.4380053,
+#'   compl_slackness = 0
+#' )
+#' kkt_diagnose(kkt, tol = 1e-8)
+#'
+#' @export
+kkt_diagnose <- function(kkt, tol = 1e-8) {
+  stopifnot(is.list(kkt))
+  res <- data.frame(
+    condition = c("stationarity", "equality_violation", "inequality_violation", "dual_feasibility", "complementarity"),
+    value = c(
+      kkt$kkt_stationarity,
+      kkt$eq_violation,
+      kkt$ineq_violation,
+      kkt$dual_feas_violation,
+      kkt$compl_slackness
+    ),
+    status = c(
+      ifelse(abs(kkt$kkt_stationarity) <= tol, "OK", "FAIL"),
+      ifelse(abs(kkt$eq_violation) <= tol, "OK", "FAIL"),
+      ifelse(abs(kkt$ineq_violation) <= tol, "OK", "FAIL"),
+      ifelse(abs(kkt$dual_feas_violation) <= tol, "OK", "FAIL"),
+      ifelse(abs(kkt$compl_slackness) <= tol, "OK", "FAIL")
+    ),
+    stringsAsFactors = FALSE
+  )
+  attr(res, "tolerance") <- tol
+  class(res) <- c("solnp_kkt_summary", class(res))
+  return(res)
+}
+
+#' @export
+print.solnp_kkt_summary <- function(x, ...) {
+  cat("KKT summary (tol =", attr(x, "tolerance"), "):\n")
+  for (i in seq_len(nrow(x))) {
+    cat(" -", x$condition[i], ":",
+        if (x$status[i] == "OK") "OK" else "FAIL",
+        sprintf("(|value| = %.2e)", abs(x$value[i])), "\n")
+  }
+  invisible(x)
+}

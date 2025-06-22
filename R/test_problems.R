@@ -2665,6 +2665,123 @@ hs57_problem <- function()
     )
 }
 
+hs58_problem <- function()
+{
+    fn <- function(x) {
+        100 * (x[2] - x[1]^2)^2 + (1 - x[1])^2
+    }
+    gr <- function(x) {
+        g2 <- 200 * (x[2] - x[1]^2)
+        g1 <- -2 * (x[1] * (g2 - 1) + 1)
+        c(g1, g2)
+    }
+    ineq_fn <- function(x) {
+        c(x[2]^2 - x[1], x[1]^2 - x[2], x[1]^2 + x[2]^2 - 1)
+    }
+    ineq_jac <- function(x) {
+        matrix(c(-1, 2 * x[2],
+                 2 * x[1], -1,
+                 2 * x[1], 2 * x[2]), nrow = 3, byrow = TRUE)
+    }
+    lower <- c(-2, -1000)
+    upper <- c(0.5, 1000)
+    start <- c(-2, 1)
+    eq_fn <- NULL
+    eq_jac <- NULL
+    eq_b <- NULL
+    ineq_lower <- rep(0, 3)
+    ineq_upper <- rep(1e8, 3)
+    best_fn <- 3.19033354957
+    best_par <- c(-0.786150483331, 0.618034533851)
+    list(
+        name = "hs58",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
+hs59_problem <- function()
+{
+    fn <- function(x) {
+        x1 <- x[1]; x2 <- x[2]
+        x11 <- x1; x12 <- x1^2; x13 <- x1^3; x14 <- x1^4
+        x21 <- x2; x22 <- x2^2; x23 <- x2^3; x24 <- x2^4
+        xx11 <- x1 * x2; xx12 <- x1 * x2^2; xx21 <- x1^2 * x2
+        xx31 <- x1^3 * x2
+        -75.196 + 3.8112 * x11 - 0.12694 * x12 + 2.0567e-3 * x13 - 1.0345e-5 * x14 +
+            6.8306 * x21 - 3.0234e-2 * x11 * x21 + 1.28134e-3 * x12 * x21 -
+            3.5256e-5 * x13 * x21 + 2.266e-7 * x14 * x21 -
+            0.25645 * x22 + 3.4604e-3 * x23 - 1.3514e-5 * x24 +
+            28.106 / (x21 + 1) + 5.2375e-6 * x12 * x22 + 6.3e-8 * x13 * x22 -
+            7e-10 * x13 * x23 - 3.4054e-4 * x11 * x22 + 1.6638e-6 * x11 * x23 +
+            2.8673 * exp(5e-4 * x11 * x21)
+    }
+    gr <- function(x) {
+        x1 <- x[1]; x2 <- x[2]
+        x11 <- x1; x12 <- x1^2; x13 <- x1^3; x14 <- x1^4
+        x21 <- x2; x22 <- x2^2; x23 <- x2^3
+        xx11 <- x1 * x2; xx12 <- x1 * x2^2; xx21 <- x1^2 * x2; xx31 <- x1^3 * x2
+
+        expterm <- exp(5e-4 * xx11)
+        g1 <- 3.8112 - 0.25388 * x1 + 6.1701e-3 * x12 - 4.138e-5 * x13 -
+            3.0234e-2 * x2 + 2.56268e-3 * xx11 - 1.05768e-4 * xx21 + 9.064e-7 * xx31 +
+            1.0475e-5 * xx12 + 1.89e-7 * x12 * x22 - 2.1e-9 * x12 * x23 -
+            3.4054e-4 * x22 + 1.6638e-6 * x23 + 1.43365e-3 * x2 * expterm
+        g2 <- 6.8306 - 3.0234e-2 * x1 + 1.28134e-3 * x12 - 3.5256e-5 * x13 +
+            2.266e-7 * x14 - 0.5129 * x2 + 1.03812e-2 * x22 - 5.4056e-5 * x23 - 28.106 / (x2 + 1)^2 +
+            1.0475e-5 * xx21 + 1.26e-7 * xx31 - 2.1e-9 * x13 * x22 - 6.8108e-4 * xx11 + 4.9914e-6 * xx12 +
+            1.43365e-3 * x1 * expterm
+        c(g1, g2)
+    }
+    ineq_fn <- function(x) {
+        c(x[1] * x[2] - 700, x[2] - 8e-3 * x[1]^2, (x[2] - 50)^2 - 5 * (x[1] - 55))
+    }
+    ineq_jac <- function(x) {
+        matrix(c(x[2], x[1],
+                 -1.6e-2 * x[1], 1,
+                 -5, 2 * (x[2] - 50)), nrow = 3, byrow = TRUE)
+    }
+    lower <- c(0, 0)
+    upper <- c(75, 65)
+    start <- c(90, 10)
+    ineq_lower <- rep(0, 3)
+    ineq_upper <- rep(1e8, 3)
+    eq_fn <- NULL
+    eq_jac <- NULL
+    eq_b <- NULL
+    best_fn <- -7.80422632408
+    best_par <- c(13.5501042366, 51.6601812877)
+    list(
+        name = "hs59",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
 alkylation_problem <- function() {
     fn <- function(x) {
         -0.63 * x[4] * x[7] + 50.4 * x[1] + 3.5 * x[2] + x[3] + 33.6 * x[5]

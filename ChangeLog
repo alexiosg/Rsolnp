@@ -1,7 +1,9 @@
 2025-06-30  Alexios Galanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 2.0.1
   * Some fixes to csolnp_ms for cases when no convergence in any runs.
-  * Fix to KKT diagnostics (to account for upper and lower bounds on inequalities)
+  * Fix to C++ KKT diagnostics (to account for upper and lower bounds on inequalities)
+  * Added a kkt_diagnose function with print method to output a quick diagnostic
+  of the KKT conditions.
 
 2025-06-18  Alexios Galanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 2.0.0
