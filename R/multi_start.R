@@ -103,8 +103,8 @@ csolnp_ms <- function(fn, gr = NULL, eq_fn = NULL, eq_b = NULL, eq_jac = NULL,
                       penalty = 1e4, eq_tol = 1e-6, ineq_tol = 1e-6, seed = NULL,
                       return_all = FALSE, ...)
 {
-    init <- generate_feasible_starts(n_candidates, fn, lower, upper, ineq_fn, ineq_lower,
-                                     ineq_upper, maxit = 100, penalty = penalty, eps = 1e-4, seed = seed)
+    init <- generate_feasible_starts(n_candidates, fn, lower, upper, ineq_fn, ineq_lower, ineq_upper, eq_fn, eq_b,
+                                     maxit = 100, penalty = penalty, eps = 1e-4, seed = seed)
     n <- NROW(init)
     sol <- future_lapply(1:n, function(i) {
         out <- try(csolnp(init[i,], fn = fn, gr = gr, eq_fn = eq_fn, eq_b = eq_b, eq_jac = eq_jac,

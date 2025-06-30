@@ -2872,6 +2872,220 @@ hs61_problem <- function()
     )
 }
 
+hs62_problem <- function()
+{
+    fn <- function(x) {
+        # Variable substitutions
+        B3 <- x[3] + 0.03
+        C3 <- 0.13 * x[3] + 0.03
+        B2 <- B3 + x[2]
+        C2 <- B3 + 0.07 * x[2]
+        B1 <- B2 + x[1]
+        C1 <- B2 + 0.09 * x[1]
+        V5 <- B1 / C1
+        V6 <- B2 / C2
+        V7 <- B3 / C3
+
+        if (V5 <= 0 || V6 <= 0 || V7 <= 0) {
+            # Penalty for infeasible region
+            S <- sum((x - 5)^2)
+            return(S + 1e3 - 2.67e4)
+        }
+
+        -32.174 * (255 * log(V5) + 280 * log(V6) + 290 * log(V7))
+    }
+    gr <- function(x) {
+        # Variable substitutions
+        B3 <- x[3] + 0.03
+        C3 <- 0.13 * x[3] + 0.03
+        B2 <- B3 + x[2]
+        C2 <- B3 + 0.07 * x[2]
+        B1 <- B2 + x[1]
+        C1 <- B2 + 0.09 * x[1]
+        # Reciprocals
+        RB1 <- 1 / B1
+        RB2 <- 1 / B2
+        RB3 <- 1 / B3
+        RC1 <- 1 / C1
+        RC2 <- 1 / C2
+        RC3 <- 1 / C3
+        V1 <- -32.174 * 255
+        V2 <- -32.174 * 280
+        V3 <- -32.174 * 290
+        V4 <- V1 * (RB1 - RC1)
+
+        # Gradient (as per Fortran)
+        g1 <- V1 * (RB1 - 0.09 * RC1)
+        g2 <- V4 + V2 * (RB2 - 0.07 * RC2)
+        g3 <- V4 + V2 * (RB2 - RC2) + V3 * (RB3 - 0.13 * RC3)
+        c(g1, g2, g3)
+    }
+    eq_fn <- function(x) {
+        sum(x) - 1
+    }
+    eq_jac <- function(x) {
+        matrix(rep(1, 3), nrow = 1)
+    }
+    lower <- rep(0, 3)
+    upper <- rep(1, 3)
+    start <- c(0.7, 0.2, 0.1)
+    eq_b <- 0
+    ineq_fn <- NULL
+    ineq_jac <- NULL
+    ineq_lower <- NULL
+    ineq_upper <- NULL
+    best_fn <- -26272.5144873
+    best_par <- c(0.617813298210, 0.328202155786, 0.0539845460119)
+    list(
+        name = "hs62",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
+hs63_problem <- function()
+{
+    fn <- function(x) {
+        1e3 - x[1]^2 - 2 * x[2]^2 - x[3]^2 - x[1] * x[2] - x[1] * x[3]
+    }
+    gr <- function(x) {
+        c(-2 * x[1] - x[2] - x[3], -4 * x[2] - x[1], -2 * x[3] - x[1])
+    }
+    eq_fn <- function(x) {
+        c(8 * x[1] + 14 * x[2] + 7 * x[3] - 56,
+          x[1]^2 + x[2]^2 + x[3]^2 - 25)
+    }
+    eq_jac <- function(x) {
+        matrix(c(8, 14, 7, 2 * x[1], 2 * x[2], 2 * x[3]),nrow = 2, byrow = TRUE)
+    }
+    lower <- rep(0, 3)
+    upper <- rep(1000, 3)
+    start <- rep(2, 3)
+    eq_b <- c(0, 0)
+    ineq_fn <- NULL
+    ineq_jac <- NULL
+    ineq_lower <- NULL
+    ineq_upper <- NULL
+    best_fn <- 961.715172127
+    best_par <- c(3.51211841492, 0.216988174172, 3.55217403459)
+    list(
+        name = "hs63",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
+hs64_problem <- function()
+{
+    fn <- function(x) {
+        5 * x[1] + 5e4 / x[1] + 20 * x[2] + 7.2e4 / x[2] + 10 * x[3] + 1.44e5 / x[3]
+    }
+    gr <- function(x) {
+        c(5 - 5e4 / x[1]^2, 20 - 7.2e4 / x[2]^2, 10 - 1.44e5 / x[3]^2)
+    }
+    ineq_fn <- function(x) {
+        1 - 4 / x[1] - 32 / x[2] - 120 / x[3]
+    }
+    ineq_jac <- function(x) {
+        matrix(c(4 / x[1]^2, 32 / x[2]^2, 120 / x[3]^2), nrow = 1)
+    }
+    lower <- rep(1e-5, 3)
+    upper <- rep(1000, 3)
+    start <- rep(1, 3)
+    eq_fn <- NULL
+    eq_jac <- NULL
+    eq_b <- NULL
+    ineq_lower <- 0
+    ineq_upper <- 1e8
+    best_fn <- 6299.84242821
+    best_par <- c(108.734717597, 85.1261394257, 204.324707858)
+    list(
+        name = "hs64",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
+
+hs65_problem <- function()
+{
+    fn <- function(x) {
+        (x[1] - x[2])^2 + ((x[1] + x[2] - 10)/3)^2 + (x[3] - 5)^2
+    }
+    gr <- function(x) {
+        v1 <- 2 * (x[1] - x[2])
+        v2 <- 2 * (x[1] + x[2] - 10) / 9
+        c(v1 + v2, -v1 + v2, 2 * (x[3] - 5))
+    }
+    ineq_fn <- function(x) {
+        48 - x[1]^2 - x[2]^2 - x[3]^2
+    }
+    ineq_jac <- function(x) {
+        matrix(c(-2 * x[1], -2 * x[2], -2 * x[3]), nrow = 1)
+    }
+    lower <- c(-4.5, -4.5, -5)
+    upper <- c(4.5, 4.5, 5)
+    start <- c(-5, 5, 0)
+    eq_fn <- NULL
+    eq_jac <- NULL
+    eq_b <- NULL
+    ineq_lower <- 0
+    ineq_upper <- 1e8
+    best_fn <- 0.953528856757
+    best_par <- c(3.65046182158, 3.65046168940, 4.62041750754)
+    list(
+        name = "hs65",
+        fn = fn,
+        gr = gr,
+        eq_fn = eq_fn,
+        eq_b = eq_b,
+        eq_jac = eq_jac,
+        ineq_fn = ineq_fn,
+        ineq_jac = ineq_jac,
+        ineq_lower = ineq_lower,
+        ineq_upper = ineq_upper,
+        lower = lower,
+        upper = upper,
+        start = start,
+        best_fn = best_fn,
+        best_par = best_par
+    )
+}
 
 alkylation_problem <- function() {
     fn <- function(x) {
