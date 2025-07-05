@@ -1,7 +1,7 @@
 
 [![R-CMD-check](https://github.com/alexiosg/Rsolnp/actions/workflows/rcmdcheck.yaml/badge.svg)](https://github.com/alexiosg/Rsolnp/actions/workflows/rcmdcheck.yaml)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2025--06--21-yellowgreen.svg)](/commits/master)
-[![packageversion](https://img.shields.io/badge/Package%20version-2.0.1-orange.svg?style=flat-square)](commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2025--07--05-yellowgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-2.0.2-orange.svg?style=flat-square)](commits/master)
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/Rsolnp)](https://cran.r-project.org/package=Rsolnp)
 
 # Rsolnp
