@@ -1,3 +1,7 @@
+2025-07-30  Alexios Galanos <alexios@4dscape.com>
+  * DESCRIPTION (Version): New version is 2.0.2
+  * Fix to csolnp_ms multistart failed to pass ... arguments in feasibiility step initialization.
+
 2025-06-30  Alexios Galanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 2.0.1
   * Some fixes to csolnp_ms for cases when no convergence in any runs.

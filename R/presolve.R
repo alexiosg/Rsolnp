@@ -1,16 +1,16 @@
 quick_stationary_feasible <- function(x0, lower, upper, ineq_fn = NULL, ineq_lower = NULL, ineq_upper = NULL,
-                                      eq_fn = NULL, eq_b = NULL, penalty = 1e4, maxit = 10)
+                                      eq_fn = NULL, eq_b = NULL, penalty = 1e4, maxit = 10, ...)
 {
     # Inequality constraints (may be empty)
     standard_form_ineq_fn <- function(x) {
         if (is.null(ineq_fn) || is.null(ineq_lower) || is.null(ineq_upper)) return(numeric(0))
-        h <- ineq_fn(x)
+        h <- ineq_fn(x, ...)
         c(ineq_lower - h, h - ineq_upper)
     }
     # Equality constraints (may be empty)
     standard_form_eq_fn <- function(x) {
         if (is.null(eq_fn) || is.null(eq_b)) return(numeric(0))
-        eq_fn(x) - eq_b
+        eq_fn(x, ...) - eq_b
     }
     penalized <- function(x) {
         ineq_val <- standard_form_ineq_fn(x)
@@ -35,14 +35,14 @@ sample_box_feasible <- function(lower, upper, eps = 1e-4) {
     res
 }
 
-generate_feasible_starts <- function(n, fn = NULL, lower, upper, ineq_fn, ineq_lower, ineq_upper, eq_fn, eq_b, maxit = 100, penalty = 1e4, eps = 1e-4, seed = NULL)
+generate_feasible_starts <- function(n, fn = NULL, lower, upper, ineq_fn, ineq_lower, ineq_upper, eq_fn, eq_b, maxit = 100, penalty = 1e4, eps = 1e-4, seed = NULL, ...)
 {
     if (!is.null(seed)) set.seed(seed)
     candidates <- vector("list", n)
     for (i in seq_len(n)) {
         x0 <- sample_box_feasible(lower, upper, eps = eps)
         if (!is.null(ineq_fn) | !is.null(eq_fn)) {
-            feasible <- quick_stationary_feasible(x0, lower, upper, ineq_fn, ineq_lower, ineq_upper, eq_fn, eq_b, maxit = maxit, penalty = penalty)
+            feasible <- quick_stationary_feasible(x0, lower, upper, ineq_fn, ineq_lower, ineq_upper, eq_fn, eq_b, maxit = maxit, penalty = penalty, ...)
         } else {
             feasible <- x0
         }
@@ -50,7 +50,7 @@ generate_feasible_starts <- function(n, fn = NULL, lower, upper, ineq_fn, ineq_l
     }
     # Optionally, rank by objective value
     if (!is.null(fn)) {
-        obj_vals <- sapply(candidates, fn)
+        obj_vals <- sapply(candidates, function(x) fn(x, ...))
         ord <- order(obj_vals, decreasing = FALSE)
         candidates <- candidates[ord]
     }
